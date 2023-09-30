@@ -1,0 +1,31 @@
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+*.venv
+.env
+
+# IDE-specific (like PyCharm)
+.idea/
+
+# Log and other files
+*.log
+
+# Large data files (consider storing these outside of Git, especially if they are large)
+#*.csv
+#*.tsv
+#*.gz
+
+# Other files and directories you might want to ignore
+node_modules/
