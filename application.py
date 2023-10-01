@@ -36,15 +36,26 @@ import dash_bootstrap_components as dbc
 
 filename = "AlphaMissense_gene_hg38.tsv.gz"
 url = "https://zenodo.org/record/8208688/files/AlphaMissense_hg38.tsv.gz?download=1"
-# Check if the file already exists
-if not os.path.exists(filename):
-    response = requests.get(url, stream=True)
-    with open(filename, "wb") as file:
-        for chunk in response.iter_content(chunk_size=1024):
-            if chunk:
-                file.write(chunk)
-else:
-    print(f"{filename} already exists.")
+# # Check if the file already exists
+# if not os.path.exists(filename):
+#     response = requests.get(url, stream=True)
+#     with open(filename, "wb") as file:
+#         for chunk in response.iter_content(chunk_size=1024):
+#             if chunk:
+#                 file.write(chunk)
+# else:
+#     print(f"{filename} already exists.")
+
+filename = "AlphaMissense_hg38.tsv.gz"
+url = "https://zenodo.org/record/8208688/files/AlphaMissense_hg38.tsv.gz?download=1"
+
+response = requests.get(url, stream=True)
+with open(filename, "wb") as file:
+    for chunk in response.iter_content(chunk_size=1024):
+        if chunk:
+            file.write(chunk)
+
+
 
 df = pd.read_csv("AlphaMissense_hg38.tsv.gz", sep="\t", compression='gzip', skiprows=3).rename(columns={"#CHROM": "CHROM"})
 
