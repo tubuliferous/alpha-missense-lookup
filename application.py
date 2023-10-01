@@ -2,9 +2,8 @@
 import os
 import requests
 import dash
-from dash import dcc, html, Input, Output
+from dash import dcc, html, Input, Output, dash_table  # changed dash_table import here
 import pandas as pd
-import dash_table
 import dash_bootstrap_components as dbc
 import threading
 
@@ -42,6 +41,7 @@ def download_and_load_data():
 threading.Thread(target=download_and_load_data).start()
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+
 
 app.layout = dbc.Container([
     dbc.Row(dbc.Col(html.H1("AlphaMissense Lookup"), width={"size": 6, "offset": 3}), className="mb-4"),
@@ -126,4 +126,5 @@ def update_table(n_clicks, chrom, position, genotype):
     return filtered_df.to_dict('records'), options, initial_value
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    port = int(os.environ.get("PORT", 8050))  # Get port from environment or default to 8050 for local
+    app.run_server(debug=False, host='0.0.0.0', port=port)  # Make sure debug is set to False and bind to all IPs
