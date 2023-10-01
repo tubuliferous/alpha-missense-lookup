@@ -34,27 +34,35 @@ import dash_bootstrap_components as dbc
 
 # file_url = generate_presigned_url('alpha-missense', 'AlphaMissense_hg38.tsv.gz')
 
-filename = "AlphaMissense_gene_hg38.tsv.gz"
-url = "https://zenodo.org/record/8208688/files/AlphaMissense_hg38.tsv.gz?download=1"
-# # Check if the file already exists
-# if not os.path.exists(filename):
-#     response = requests.get(url, stream=True)
-#     with open(filename, "wb") as file:
-#         for chunk in response.iter_content(chunk_size=1024):
-#             if chunk:
-#                 file.write(chunk)
-# else:
-#     print(f"{filename} already exists.")
+import os
+import requests
 
 filename = "AlphaMissense_hg38.tsv.gz"
 url = "https://zenodo.org/record/8208688/files/AlphaMissense_hg38.tsv.gz?download=1"
 
-response = requests.get(url, stream=True)
-with open(filename, "wb") as file:
-    for chunk in response.iter_content(chunk_size=1024):
-        if chunk:
-            file.write(chunk)
+# Check if the file already exists
+if not os.path.exists(filename):
+    response = requests.get(url, stream=True)
+    with open(filename, "wb") as file:
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                file.write(chunk)
 
+    # Check to confirm the file was downloaded successfully
+    if os.path.exists(filename):
+        print(f"{filename} has been downloaded.")
+    else:
+        print(f"Failed to download {filename}.")
+else:
+    print(f"{filename} already exists.")
+
+
+
+# Print the current working directory
+print("Current Working Directory:", os.getcwd())
+
+# Print the list of files in the current directory
+print("Files in the Current Directory:", os.listdir(os.getcwd()))
 
 
 df = pd.read_csv("AlphaMissense_hg38.tsv.gz", sep="\t", compression='gzip', skiprows=3).rename(columns={"#CHROM": "CHROM"})
