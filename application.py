@@ -1,32 +1,56 @@
 # Import necessary libraries
+import os
+import requests
 import dash
 from dash import dcc, html, Input, Output
 import pandas as pd
 import dash_table
-import io
 import dash_bootstrap_components as dbc
+# import io
+# import boto3
+# from botocore.exceptions import NoCredentialsError
 
+# def generate_presigned_url(bucket_name, object_name, expiration=3600):
+#     """
+#     Generate a presigned URL to share an S3 object
 
-# Sample data
-# data = """
-# CHROM\tPOS\tREF\tALT\tgenome\tuniprot_id\ttranscript_id\tprotein_variant\tam_pathogenicity\tam_class
-# chr1\t69094\tG\tT\thg38\tQ8NH21\tENST00000335137.4\tV2L\t0.2937\tlikely_benign
-# chr1\t69102\tA\tT\thg38\tQ8NH21\tENST00000335137.4\tE4D\t0.2349\tlikely_benign"""
+#     :param bucket_name: string
+#     :param object_name: string
+#     :param expiration: Time in seconds for the presigned URL to remain valid
+#     :return: Presigned URL as string. If error, returns None.
+#     """
 
-# Convert the string data to a pandas DataFrame
-# df = pd.read_csv(pd.compat.StringIO(data), sep="\t")
+#     s3_client = boto3.client('s3')
+#     try:
+#         response = s3_client.generate_presigned_url('get_object',
+#                                                     Params={'Bucket': bucket_name,
+#                                                             'Key': object_name},
+#                                                     ExpiresIn=expiration)
+#     except NoCredentialsError:
+#         print('Credentials not available')
+#         return None
 
-# df = pd.read_csv(io.StringIO(data), sep="\t")
-# df = pd.read_csv(io.StringIO(data), sep="\t")
+#     return response
+
+# file_url = generate_presigned_url('alpha-missense', 'AlphaMissense_hg38.tsv.gz')
+
+filename = "AlphaMissense_gene_hg38.tsv.gz"
+url = "https://zenodo.org/record/8208688/files/AlphaMissense_hg38.tsv.gz?download=1"
+# Check if the file already exists
+if not os.path.exists(filename):
+    response = requests.get(url, stream=True)
+    with open(filename, "wb") as file:
+        for chunk in response.iter_content(chunk_size=1024):
+            if chunk:
+                file.write(chunk)
+else:
+    print(f"{filename} already exists.")
 
 df = pd.read_csv("AlphaMissense_hg38.tsv.gz", sep="\t", compression='gzip', skiprows=3).rename(columns={"#CHROM": "CHROM"})
 
-print(df.head())
 
 # Create a Dash application
-# app = dash.Dash(__name__)
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
-
 
 # Define the app layout
 app.layout = dbc.Container([
@@ -127,8 +151,6 @@ def update_table(n_clicks, chrom, position, genotype):
     print(filtered_df)
 
     return filtered_df.to_dict('records')
-
-
 
 # Run the app
 if __name__ == "__main__":
