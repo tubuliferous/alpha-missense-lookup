@@ -40,6 +40,7 @@ import requests
 filename = "AlphaMissense_hg38.tsv.gz"
 url = "https://zenodo.org/record/8208688/files/AlphaMissense_hg38.tsv.gz?download=1"
 
+print("Downloading AlphaMissense table...")
 # Check if the file already exists
 if not os.path.exists(filename):
     response = requests.get(url, stream=True)
@@ -55,7 +56,6 @@ if not os.path.exists(filename):
         print(f"Failed to download {filename}.")
 else:
     print(f"{filename} already exists.")
-
 
 
 # Print the current working directory
