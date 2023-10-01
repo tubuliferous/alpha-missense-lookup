@@ -25,7 +25,7 @@ venv/
 # Large data files (consider storing these outside of Git, especially if they are large)
 #*.csv
 #*.tsv
-#*.gz
+*.gz
 
 # Other files and directories you might want to ignore
 node_modules/
