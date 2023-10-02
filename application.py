@@ -124,5 +124,6 @@ def update_table(n_clicks, chrom, position, genotype):
 
     return filtered_df.to_dict('records'), options, initial_value
 
-if __name__ == "__main__":
-    app.run_server(debug=True)
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 8050))  # 8050 is a default port you choose for local development
+    app.run_server(debug=False, host='0.0.0.0', port=port)
