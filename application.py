@@ -4,8 +4,9 @@ import requests
 import dash
 from dash import dcc, html, Input, Output
 import pandas as pd
-import dash_table
+from dash import dash_table
 import dash_bootstrap_components as dbc
+
 
 filename = "AlphaMissense_hg38.tsv.gz"
 url = "https://zenodo.org/record/8208688/files/AlphaMissense_hg38.tsv.gz?download=1"
