@@ -1,44 +1,15 @@
-# Import necessary libraries
 import os
-import requests
+import logging
+from sqlalchemy import create_engine, text
 import dash
 from dash import dcc, html, Input, Output, dash_table
-import pandas as pd
 import dash_bootstrap_components as dbc
-import threading
+import pandas as pd
 
-filename = "AlphaMissense_hg38.tsv.gz"
-url = "https://zenodo.org/record/8208688/files/AlphaMissense_hg38.tsv.gz?download=1"
-data_ready_event = threading.Event()
+logging.basicConfig(level=logging.INFO)
 
-def download_and_load_data():
-    global df
-    
-    print("Downloading AlphaMissense table...")
-
-    if not os.path.exists(filename):
-        response = requests.get(url, stream=True)
-        with open(filename, "wb") as file:
-            for chunk in response.iter_content(chunk_size=1024):
-                if chunk:
-                    file.write(chunk)
-
-        if os.path.exists(filename):
-            print(f"{filename} has been downloaded.")
-        else:
-            print(f"Failed to download {filename}.")
-    else:
-        print(f"{filename} already exists.")
-    
-    print("Current Working Directory:", os.getcwd())
-    print("Files in the Current Directory:", os.listdir(os.getcwd()))
-    print("Loading AlphaMissense table...")
-    df = pd.read_csv(filename, sep="\t", compression='gzip', skiprows=3).rename(columns={"#CHROM": "CHROM"})
-    print("AlphaMissense table loaded.")
-    
-    data_ready_event.set()
-
-threading.Thread(target=download_and_load_data).start()
+DATABASE_URL = 'postgresql://dash:dash@localhost:5432/am_database'
+engine = create_engine(DATABASE_URL)
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -78,52 +49,51 @@ app.layout = dbc.Container([
     ])
 ], fluid=True)
 
-app.clientside_callback(
-    """
-    function(n_submit, n_enter) {
-        if(n_enter>n_submit) {
-            return n_enter;
-        } else {
-            return n_submit;
-        }
-    }
-    """,
-    Output('submit-btn', 'n_clicks'),
-    Input('submit-btn', 'n_clicks'),
-    Input('genotype-input', 'n_submit')
-)
-
 @app.callback(
-    Output("table-output", "data"),
-    Output("chrom-dropdown", "options"),
-    Output("chrom-dropdown", "value"),
+    [Output("table-output", "data"),
+     Output("chrom-dropdown", "options"),
+     Output("chrom-dropdown", "value")],
     [Input("submit-btn", "n_clicks")],
     [dash.dependencies.State("chrom-dropdown", "value"),
      dash.dependencies.State("position-input", "value"),
      dash.dependencies.State("genotype-input", "value")]
 )
 def update_table(n_clicks, chrom, position, genotype):
-    data_ready_event.wait()
-    options = sorted(
-                [{'label': chrom, 'value': chrom} for chrom in df['CHROM'].unique()],
-                key=lambda x: (int(x['label'][3:]) if x['label'][3:].isdigit() else float('inf'), x['label'])
-            )
-    initial_value = df['CHROM'].unique()[0] if not chrom else chrom
+    # Fetch unique chromosomes for dropdown
+    options = []
+    try:
+        with engine.connect() as connection:
+            stmt = text('SELECT DISTINCT "CHROM" FROM deepmind_data')
+            chroms = connection.execute(stmt).fetchall()
+            options = sorted([{'label': chrom[0], 'value': chrom[0]} for chrom in chroms], key=lambda x: x['value'])
+    except Exception as e:
+        logging.error("Error fetching chromosome data: %s", str(e))
 
-    if not genotype:
-        return [], options, initial_value
+    # If the dropdown was previously empty or the selected value is not in the new options
+    if not chrom or not any(opt['value'] == chrom for opt in options):
+        chrom = options[0]['value'] if options else None
 
-    genotype = genotype.upper()
+    data_dicts = []
+    # Fetch filtered data based on user input
+    if genotype:
+        genotype = genotype.upper()
+        # Dynamically construct the IN clause based on the genotype length
+        in_clause = ', '.join([f':genotype{i}' for i in range(len(genotype))])
+        with engine.connect() as connection:
+            query = text(f'''SELECT * FROM deepmind_data WHERE "CHROM"=:chrom AND "POS"=:position AND "ALT" IN ({in_clause})''')
+            # Construct the parameters dictionary
+            params = {"chrom": chrom, "position": position}
+            for i, gen in enumerate(genotype):
+                params[f'genotype{i}'] = gen
+            data = connection.execute(query, params).fetchall()
 
-    if len(genotype) == 1:
-        filtered_df = df[(df['CHROM'] == chrom) & (df['POS'] == position) & 
-                         (df['ALT'] == genotype)]
-    else:
-        filtered_df = df[(df['CHROM'] == chrom) & (df['POS'] == position) & 
-                         ((df['ALT'] == genotype[0]) | (df['ALT'] == genotype[1]))]
+        # Convert data to dictionary format for DataTable
+        columns = ["CHROM", "POS", "REF", "ALT", "genome", "uniprot_id", "transcript_id", 
+                   "protein_variant", "am_pathogenicity", "am_class"]
+        data_dicts = [dict(zip(columns, row)) for row in data]
 
-    return filtered_df.to_dict('records'), options, initial_value
+    return data_dicts, options, chrom
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 8050))  # 8050 is a default port you choose for local development
+    port = int(os.environ.get("PORT", 8050))
     app.run_server(debug=False, host='0.0.0.0', port=port)
