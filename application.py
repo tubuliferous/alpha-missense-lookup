@@ -12,7 +12,9 @@ db_pass = os.environ.get('DB_PASS')
 db_host = os.environ.get('DB_HOST')
 db_name = os.environ.get('DB_NAME')
 
-DATABASE_URL = 'postgresql://dash:dash@localhost:5432/am_database'
+# DATABASE_URL = 'postgresql://dash:dash@localhost:5432/am_database'
+DATABASE_URL = f'postgresql://{db_user}:{db_pass}@{db_host}/{db_name}'
+
 engine = create_engine(DATABASE_URL)
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
