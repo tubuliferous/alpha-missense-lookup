@@ -23,8 +23,8 @@ venv/
 *.log
 
 # Large data files (consider storing these outside of Git, especially if they are large)
-#*.csv
-#*.tsv
+*.csv
+*.tsv
 *.gz
 
 # Other files and directories you might want to ignore
