@@ -12,8 +12,6 @@ db_pass = os.environ.get('DB_PASS')
 db_host = os.environ.get('DB_HOST')
 db_name = os.environ.get('DB_NAME')
 
-# DATABASE_URL = f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}"
-
 DATABASE_URL = 'postgresql://dash:dash@localhost:5432/am_database'
 engine = create_engine(DATABASE_URL)
 
@@ -23,7 +21,7 @@ app.layout = dbc.Container([
     dbc.Row(dbc.Col(html.H1("AlphaMissense Lookup"), width={"size": 6, "offset": 3}), className="mb-4"),
     dbc.Row([
         dbc.Col([
-            dbc.Label('Chromosome:'),
+            dbc.Label('Chromosome:', style={"fontWeight": "bold"}),
             dbc.Select(
                 id="chrom-dropdown",
                 options=[],
@@ -31,15 +29,15 @@ app.layout = dbc.Container([
             )
         ], width=2),
         dbc.Col([
-            dbc.Label('Position:'),
-            dbc.Input(id="position-input", type="number", placeholder="Enter position")
+            dbc.Label('Position:', style={"fontWeight": "bold"}),
+            dbc.Input(id="position-input", type="number", placeholder="Enter position", n_submit=0)
         ], width=2),
         dbc.Col([
-            dbc.Label('Genotype:'),
-            dbc.Input(id="genotype-input", type="text", placeholder="Enter genotype")
+            dbc.Label('Genotype:', style={"fontWeight": "bold"}),
+            dbc.Input(id="genotype-input", type="text", placeholder="Enter genotype", n_submit=0)
         ], width=2),
         dbc.Col([
-            dbc.Button("Submit", id="submit-btn", color="primary", className="mt-4")
+            dbc.Button("Submit", id="submit-btn", color="primary", style={"margin-top": "30px"})
         ], width=2)
     ], className="mb-4"),
     dbc.Row([
@@ -59,12 +57,14 @@ app.layout = dbc.Container([
     [Output("table-output", "data"),
      Output("chrom-dropdown", "options"),
      Output("chrom-dropdown", "value")],
-    [Input("submit-btn", "n_clicks")],
+    [Input("submit-btn", "n_clicks"),
+     Input("position-input", "n_submit"),
+     Input("genotype-input", "n_submit")],
     [dash.dependencies.State("chrom-dropdown", "value"),
      dash.dependencies.State("position-input", "value"),
      dash.dependencies.State("genotype-input", "value")]
 )
-def update_table(n_clicks, chrom, position, genotype):
+def update_table(n_clicks, pos_submit, gen_submit, chrom, position, genotype):
     # Fetch unique chromosomes for dropdown
     options = []
     try:

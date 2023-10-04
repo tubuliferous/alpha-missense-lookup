@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, text
 import gzip
 import time
 import numpy as np
+import os
 
 # Load data into a DataFrame
     # df = pd.read_csv(f, delimiter='\t', skiprows=2)
@@ -19,7 +20,7 @@ db_host = os.environ.get('DB_HOST')
 db_name = os.environ.get('DB_NAME')
 DATABASE_URL = f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}"
 # DATABASE_URL = 'postgresql://dash:dash@localhost:5432/am_database'k
-engine = create_engine()
+engine = create_engine(DATABASE_URL)
 
 with engine.connect() as connection:
     connection.execute(text("DROP alpha_missense_data;"))
@@ -37,5 +38,5 @@ elapsed_time = end_time - start_time
 print(f"The process took {elapsed_time:.2f} seconds.")
 
 
-sample_df = pd.read_sql("SELECT * FROM alpha_missense_data LIMIT 10000", engine)
+sample_df = pd.read_sql("SELECT * FROM alpha_missense_data LIMIT 10", engine)
 sample_df

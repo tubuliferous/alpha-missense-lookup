@@ -5,7 +5,7 @@ import time
 import numpy as np
 import psycopg2
 
-filename = "AlphaMissense_hg38.tsv.gz_backup.gz"
+# filename = "AlphaMissense_hg38.tsv.gz_backup.gz"
 alpha_missense_df = pd.read_csv(filename, sep="\t", compression='gzip', skiprows=3).rename(columns={"#CHROM": "CHROM"})
 alpha_missense_df.head()
 
@@ -75,7 +75,8 @@ engine = create_engine(DATABASE_URL)
 # with engine.connect() as connection:
 #     connection.execute(text("TRUNCATE deepmind_data;"))
 
-upload_df = merged_df
+filename = "AlphaMissense_hg38_annotated.tsv.gz"
+upload_df = pd.read_csv(filename, sep="\t", compression='gzip')
 # Insert data from DataFrame into PostgreSQL
 chunk_size = 10000  # Adjust this based on your preference
 total_chunks = len(upload_df) // chunk_size + 1
