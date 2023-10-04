@@ -69,7 +69,7 @@ def update_table(n_clicks, chrom, position, genotype):
     options = []
     try:
         with engine.connect() as connection:
-            stmt = text('SELECT DISTINCT "CHROM" FROM deepmind_data')
+            stmt = text('SELECT DISTINCT "CHROM" FROM alpha_missense_data')
             chroms = connection.execute(stmt).fetchall()
             options = sorted([{'label': chrom[0], 'value': chrom[0]} for chrom in chroms], key=lambda x: x['value'])
     except Exception as e:
@@ -86,7 +86,7 @@ def update_table(n_clicks, chrom, position, genotype):
         # Dynamically construct the IN clause based on the genotype length
         in_clause = ', '.join([f':genotype{i}' for i in range(len(genotype))])
         with engine.connect() as connection:
-            query = text(f'''SELECT * FROM deepmind_data WHERE "CHROM"=:chrom AND "POS"=:position AND "ALT" IN ({in_clause})''')
+            query = text(f'''SELECT * FROM alpha_missense_data WHERE "CHROM"=:chrom AND "POS"=:position AND "ALT" IN ({in_clause})''')
             # Construct the parameters dictionary
             params = {"chrom": chrom, "position": position}
             for i, gen in enumerate(genotype):
