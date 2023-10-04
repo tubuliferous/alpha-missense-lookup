@@ -12,9 +12,9 @@ db_pass = os.environ.get('DB_PASS')
 db_host = os.environ.get('DB_HOST')
 db_name = os.environ.get('DB_NAME')
 
-DATABASE_URL = f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}"
+# DATABASE_URL = f"postgresql://{db_user}:{db_pass}@{db_host}/{db_name}"
 
-# DATABASE_URL = 'postgresql://dash:dash@localhost:5432/am_database'
+DATABASE_URL = 'postgresql://dash:dash@localhost:5432/am_database'
 engine = create_engine(DATABASE_URL)
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -74,11 +74,9 @@ def update_table(n_clicks, chrom, position, genotype):
             options = sorted([{'label': chrom[0], 'value': chrom[0]} for chrom in chroms], key=lambda x: x['value'])
     except Exception as e:
         logging.error("Error fetching chromosome data: %s", str(e))
-
     # If the dropdown was previously empty or the selected value is not in the new options
     if not chrom or not any(opt['value'] == chrom for opt in options):
         chrom = options[0]['value'] if options else None
-
     data_dicts = []
     # Fetch filtered data based on user input
     if genotype:
@@ -92,12 +90,9 @@ def update_table(n_clicks, chrom, position, genotype):
             for i, gen in enumerate(genotype):
                 params[f'genotype{i}'] = gen
             data = connection.execute(query, params).fetchall()
-
         # Convert data to dictionary format for DataTable
-        columns = ["CHROM", "POS", "REF", "ALT", "genome", "uniprot_id", "transcript_id", 
-                   "protein_variant", "am_pathogenicity", "am_class"]
+        columns = ["CHROM", "POS", "REF", "ALT", "genome", "am_pathogenicity", "am_class", "mean_am_pathogenicity", "gene_id",	"gene_name", "transcript_name", "uniprot_id", "transcript_id", "protein_variant"]
         data_dicts = [dict(zip(columns, row)) for row in data]
-
     return data_dicts, options, chrom
 
 if __name__ == '__main__':
