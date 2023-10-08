@@ -12,7 +12,8 @@ db_pass = os.environ.get('DB_PASS')
 db_host = os.environ.get('DB_HOST')
 db_name = os.environ.get('DB_NAME')
 
-# DATABASE_URL = 'postgresql://dash:dash@localhost:5432/am_database'
+print(f'{db_host}')
+
 DATABASE_URL = f'postgresql://{db_user}:{db_pass}@{db_host}/{db_name}'
 
 engine = create_engine(DATABASE_URL)
@@ -39,7 +40,7 @@ app.layout = dbc.Container([
             dbc.Input(id="genotype-input", type="text", placeholder="Enter genotype", n_submit=0)
         ], width=2),
         dbc.Col([
-            dbc.Button("Submit", id="submit-btn", color="primary", style={"margin-top": "30px"})
+            dbc.Button("Submit", id="submit-btn", color="primary", style={"margin-top": "32px"})
         ], width=2)
     ], className="mb-4"),
     dbc.Row([
