@@ -32,11 +32,11 @@ app.layout = dbc.Container([
             )
         ], width=2),
         dbc.Col([
-            dbc.Label('Position:', style={"fontWeight": "bold"}),
+            dbc.Label('Position (hg38):', style={"fontWeight": "bold"}),
             dbc.Input(id="position-input", type="number", placeholder="Enter position", n_submit=0)
         ], width=2),
         dbc.Col([
-            dbc.Label('Genotype:', style={"fontWeight": "bold"}),
+            dbc.Label('Genotype (+ strand):', style={"fontWeight": "bold"}),
             dbc.Input(id="genotype-input", type="text", placeholder="Enter genotype", n_submit=0)
         ], width=2),
         dbc.Col([
@@ -56,6 +56,19 @@ app.layout = dbc.Container([
     ])
 ], fluid=True)
 
+def chromosomal_order(chrom):
+    """Function to give chromosomes a natural sort order."""
+    # Remove 'chr' prefix if it exists
+    chrom = chrom.replace("chr", "")
+    if chrom == 'X':
+        return 23
+    elif chrom == 'Y':
+        return 24
+    elif chrom in ['M', 'MT']:
+        return 25
+    else:
+        return int(chrom)
+
 @app.callback(
     [Output("table-output", "data"),
      Output("chrom-dropdown", "options"),
@@ -74,7 +87,7 @@ def update_table(n_clicks, pos_submit, gen_submit, chrom, position, genotype):
         with engine.connect() as connection:
             stmt = text('SELECT DISTINCT "CHROM" FROM alpha_missense_data')
             chroms = connection.execute(stmt).fetchall()
-            options = sorted([{'label': chrom[0], 'value': chrom[0]} for chrom in chroms], key=lambda x: x['value'])
+            options = sorted([{'label': chrom[0], 'value': chrom[0]} for chrom in chroms], key=lambda x: chromosomal_order(x['value']))
     except Exception as e:
         logging.error("Error fetching chromosome data: %s", str(e))
     # If the dropdown was previously empty or the selected value is not in the new options
@@ -94,7 +107,7 @@ def update_table(n_clicks, pos_submit, gen_submit, chrom, position, genotype):
                 params[f'genotype{i}'] = gen
             data = connection.execute(query, params).fetchall()
         # Convert data to dictionary format for DataTable
-        columns = ["CHROM", "POS", "REF", "ALT", "genome", "am_pathogenicity", "am_class", "mean_am_pathogenicity", "gene_id",	"gene_name", "transcript_name", "uniprot_id", "transcript_id", "protein_variant"]
+        columns = ["CHROM", "POS", "REF", "ALT", "genome", "am_pathogenicity", "am_class", "mean_am_pathogenicity", "gene_id", "gene_name", "transcript_name", "uniprot_id", "transcript_id", "protein_variant"]
         data_dicts = [dict(zip(columns, row)) for row in data]
     return data_dicts, options, chrom
 
